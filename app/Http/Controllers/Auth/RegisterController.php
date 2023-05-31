@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Providers\RouteServiceProvider;
-use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\Auth\RegisterRequest;
 use Illuminate\Support\Facades\Validator;
+
 
 class RegisterController extends Controller
 {
@@ -42,21 +44,17 @@ class RegisterController extends Controller
         $this->middleware('guest');
     }
 
-    /**
-     * Get a validator for an incoming registration request.
-     *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
-     */
     protected function validator(array $data)
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:customers'],
+            'details' => ['required', 'string'],
+            'image' => ['required', 'image', 'mimes:jpg, png, jpeg'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'g-recaptcha-response' => ['recaptcha'],
         ]);
     }
-
     /**
      * Create a new user instance after a valid registration.
      *
@@ -65,10 +63,27 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return Customer::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        try {
+            $img = $data['image'];
+            if ($img) {
+                $fileName = $img . time();
+                $profileName = $fileName . '.' . $img->getClientOriginalExtension();
+                $storeData = Storage::putFileAs(
+                    'images/profile',
+                    $img,
+                    $profileName
+                );
+            }
+            return Customer::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'image' => $storeData,
+                'details' => $data['details'],
+                'status' => true,
+                'password' => Hash::make($data['password']),
+            ]);
+        } catch (\Exception $err) {
+            return redirect()->back()->with('error', 'User does not Created', $err->getMessage());
+        }
     }
 }
