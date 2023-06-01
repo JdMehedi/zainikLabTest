@@ -52,7 +52,7 @@ class LoginRequest extends FormRequest
             return;
         }
 
-        RateLimiter::hit($this->throttleKey());
+        RateLimiter::hit($this->throttleKey(), 900);
 
         throw ValidationException::withMessages([
             'email' => trans('auth.failed'),
@@ -66,7 +66,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 3)) {
             return;
         }
 
