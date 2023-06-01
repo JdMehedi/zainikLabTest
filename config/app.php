@@ -159,7 +159,7 @@ return [
         /*
          * Package Service Providers...
          */
-
+        Jorenvh\Share\Providers\ShareServiceProvider::class,
         /*
          * Application Service Providers...
          */

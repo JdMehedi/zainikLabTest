@@ -24,6 +24,7 @@ class Customer extends Authenticatable
         'details',
         'status',
         'image',
+        'username',
     ];
 
     /**
@@ -45,4 +46,12 @@ class Customer extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    
+    protected $guard = 'web';
+
+    public function getGuardAttribute()
+    {
+        return $this->guard;
+    }
+
 }
